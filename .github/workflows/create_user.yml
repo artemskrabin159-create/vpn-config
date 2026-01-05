@@ -1,0 +1,34 @@
+name: Create VPN User
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-user:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate UUID and config
+        run: |
+          UUID=$(uuidgen)
+          FILE="users/user-${UUID:0:8}.json"
+          mkdir -p users
+          sed "s/UUID_USER/$UUID/g" template.json > $FILE
+          echo "UUID=$UUID" >> $GITHUB_ENV
+          echo "FILE=$FILE" >> $GITHUB_ENV
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add users/
+          git commit -m "Add user $UUID"
+          git push
+
+      - name: Result
+        run: |
+          echo "UUID: $UUID"
+          echo "RAW LINK:"
+          echo "https://raw.githubusercontent.com/${{ github.repository }}/main/$FILE"
